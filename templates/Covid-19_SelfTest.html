@@ -1,0 +1,230 @@
+<html>
+    <head>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+      <link rel ="stylesheet" type ="text/css" href ='../static/css/bootstrap.min.css'>
+      <script type ="text/javascript" src ="../static/js/bootstrap.min.js"></script>        
+        <style>
+          div.hidden{
+            display: none;            
+          }
+          div.jumbotron{
+            margin-bottom: 0;
+          }
+           
+          #predict-button, label{
+            cursor: pointer;
+            background-color:rgb(245, 96, 96);
+            color: white;
+            border: 5px solid rgb(245, 96, 96);
+            border-radius: 5px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: bold;
+            font-size: 25px;
+            margin-top: 10px;
+          }
+
+          label:hover, #predict-button:hover {
+            opacity: 0.5;
+          }
+          input:hover {
+            opacity: 0.5;
+          }
+
+          footer {
+            background-color: #555;
+            color: white;
+            padding: 15px;
+          }
+          #foot{
+            display: block;
+          }
+          #webcover{
+            background-image: url("../static/img/CoronaVirusIMG.jpg");
+            height: 100%;  
+            background-position: center;
+            background-size: cover;
+          }
+          #wMessage{
+            border-left: 8px solid red;
+            background-color: rgb(255, 255, 255);
+            margin-top: 100px;
+            color:red; 
+            margin-bottom: 50px;
+          }
+          #info{
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: bold;
+            color: white;
+            font-size: 22px;
+            text-align: center;
+            
+          }
+
+          #picture{
+            background-color:rgb(255, 152, 152); 
+            border: 5px solid rgb(255, 108, 97);     
+          }
+          #positive{
+            background-color:rgb(233, 113, 113); 
+            color:rgb(41, 3, 3); 
+            border-left: 8px solid red;
+          }
+          #negative{
+            background-color:rgba(110, 240, 138, 0.87); 
+            color:rgb(7, 36, 6); 
+            border-left: 8px solid green;
+          }
+          
+        </style>
+
+      </head>
+    <body>
+        <div class="jumbotron text-center">
+            <h1>Covid-19 Detector</h1>
+            <p>Powered by : Western AI</p>
+        </div>
+
+    <div class="container-fluid text-center">
+      
+      <div class ="row" id="webcover">
+        <div class = "col text-left">
+          <div class="container">
+            <div class = "row" id ="wMessage">
+              <h4><b> &nbsp; COVID-19 IS SERIOUS PLEASE STAY INDOORS AND LIMIT SOCIAL CONTACT</b></h4>
+            </div>
+          </div>
+
+          <div class ="container pt-3">
+            <div class ="row">
+              <div class="col-sm-8 pt-3" id="info">
+                <p> Please upload a .png picture of a 1:1 ratio x-ray scan of the patients lungs.</p>
+              </div>
+              <div class ="col-sm-1"></div>
+              <div class = "col-sm-3">
+
+                <!--< IN PROGRESS & FINALLY WORKING > -->
+                
+                <!--<form action = "/ans" method="post" enctype="multipart/form-data"> -->
+                  <input id="image-selector" type="file" name="image" accept="image/png" hidden> <!--file selector for user to browse for img-->
+                  <label for="image-selector">Upload Image</label>
+                  <button id='predict-button' style ="margin-bottom:10px;">Predict Result</button> <!--file selector-->
+                  <img id='selected-image' src=''/>  <!--image tag for image chosen by user -->
+                  <!--<p style ="color:rgb(255, 0, 0)">COVID Test Result: <span id="covid-prediction"></span></p> -->
+                  <!-- new for post testing bellow -->
+                  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+                  <script>
+
+                    let base64Image;
+                    $("#image-selector").change(function() { 
+                      let reader = new FileReader();     //read content of file selected by user
+                      reader.onload = function(e) {      // handler for load event
+                        let dataURL = reader.result;              //contains image data as url base 64 encoded string
+                        let img = document.getElementById('displayImg');
+                        img.src = dataURL;
+                       // $('#selected-image').attr("src", dataURL);     // makes image to be displayeed on page
+                        base64Image = dataURL.replace("data:image/png;base64,",""); //get rid of metadataabout img and assign to base 64 img
+                        //alert(base64Image);
+                      }
+                      reader.readAsDataURL($("#image-selector")[0].files[0]); // reads content of user selected file
+                    });
+                    
+                    $("#predict-button").click(function(event){ 
+                      document.getElementById("pResult").style.display = "none";
+                      document.getElementById("nResult").style.display = "none";
+                      let message = {                        
+                        image: base64Image     //make message a js object
+                      }
+                      $.post("/ans", JSON.stringify(message), function(response){  //converts message to json and recieves response from server 
+                        let output = response.prediction.covid;
+                        if (output == 0) {
+                          document.getElementById("pResult").style.display = "block";
+                        } else {
+                          document.getElementById("nResult").style.display = "block";
+                        }
+                      });
+                    });
+                  </script>
+
+              </div>
+            </div>
+            <div class = "row" id ="picture">
+              <img id="displayImg" width="600"/>
+            </div>     
+          </div>
+
+          <div class ="container pt-3"> 
+            <div class ="hidden" id ="pResult">
+              <h1 id ="positive">&nbsp; Test Result: Positive </h1>
+            </div>
+          </div>
+
+          <div class ="container pt-3">
+            <div class = "hidden" id ="nResult">
+              <h1 id ="negative">&nbsp; Test Result: Negative</h1>
+            </div>
+          </div>
+        </div>
+
+        <footer class="container-fluid text-left" id ="foot" style ="margin-top: 200px;">
+          <div class ="row" style ="color:white; font-size:12px;">
+            <div class = "col-sm-3 text-center">
+              <p>
+              <img src="../static/img/western-logo.png" width ="86" height ="110" />
+              <h5>Western University</h5>
+              </p>
+            </div>
+            <div class = "col-sm-3">
+              <h4>Contact Information</h4>
+              <p>Location: 1151 Richmond St <br/> London, ON</p>
+              <p><b>Rithik Kalra</b> <br/> Email: rkalra24@uwo.ca <br/>
+                  <a href ="https://www.linkedin.com/in/rithik-kalra-386a7019b/">
+                    <input type="image" id="image1" alt="Login" width ="40" height ="40" src="../static/img/linkedIn%20icon.png">
+                  </a>
+              </p>
+            </div>
+            <div class = "col-sm-2" style ="margin-top: 35px;">
+              <p><b>Octavio Diaz</b> <br/> Email: odiaz2@uwo.ca<br/> 
+                <a href ="https://www.linkedin.com/in/octavio-diaz2">
+                  <input type="image" id="image2" alt="Login" width ="40" height ="40" src="../static/img/linkedIn%20icon.png">
+                </a>
+              </p>
+              <p><b>Nelaven Subaskaran</b> <br/> Email: nsubaska@uwo.ca<br/>
+                <a href ="https://www.linkedin.com/in/nelavensubas/">
+                  <input type="image" id="image3" alt="Login" width ="40" height ="40" src="../static/img/linkedIn%20icon.png">
+                </a>              
+              </p>
+            </div>
+            <div class = "col-sm-2" style ="margin-top: 35px;">
+              <p><b>Hamzhayen Suventhiran</b> <br/> Email: hsuventh@uwo.ca<br/> 
+                <a href ="https://www.linkedin.com/in/hamzhayen-suventhiran/">
+                  <input type="image" id="image4" alt="Login" width ="40" height ="40" src="../static/img/linkedIn%20icon.png">
+                </a>  
+              </p>
+              <p><b>Oleksiy Kovtonyuk</b> <br/> Email: okovtony@uwo.ca <br/>
+              </p>
+            </div>
+            <div class = "col-sm-2" style ="margin-top: 35px;">
+              <p><b>Abbas Hasan</b> <br/> Email: ahasan62@uwo.ca<br/> 
+                </p>
+              <h6>Social Media</h6> 
+              <p>
+                <a href ="https://www.facebook.com/">
+                <input type="image" id="image7" alt="Login" width ="40" height ="40" src="../static/img/facebook%20icon.png">
+                </a>
+                <a href ="https://www.instagram.com/"></a>
+                <input type="image" id="image8" alt="Login" width ="38" height ="38" src="../static/img/instagram icon.png">
+                </a>
+                <a href ="https://twitter.com/?lang=en"></a>
+                <input type="image" id="image9" alt="Login" width ="40" height ="40" src="../static/img/twitter%20icon.png"> </p>
+                </a> 
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+          <!--<script type="text/javascript">
+            let testResult = {{data.diagnosis}};
+            console.log('***in js for var');
+            </script>-->
+    </body>
+</html>
